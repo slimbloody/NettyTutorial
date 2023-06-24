@@ -14,6 +14,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.kqueue.KQueueSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.Future;
@@ -24,11 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 public class NettyServer {
   public static LoggingHandler LOGGING_HANDLER = new LoggingHandler(LogLevel.DEBUG);
   
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
     EventLoopGroup bossGroup = new KQueueEventLoopGroup(1);
-    EventLoopGroup workerGroup = new KQueueEventLoopGroup(8);
-    ServerBootstrap serverBootstrap = new ServerBootstrap().group(bossGroup,
-        workerGroup)
+    EventLoopGroup workerGroup = new KQueueEventLoopGroup(1);
+    ServerBootstrap serverBootstrap = new ServerBootstrap()
+      .group(bossGroup, workerGroup)
       .channel(KQueueServerSocketChannel.class)
       .childOption(ChannelOption.SO_BACKLOG, 1024)
       .childOption(ChannelOption.SO_KEEPALIVE, false)
@@ -38,10 +41,10 @@ public class NettyServer {
         protected void initChannel(KQueueSocketChannel ch) throws Exception {
           ch.pipeline().addLast(LOGGING_HANDLER);
           ch.pipeline().addLast(IMIdleStateHandler.INSTANCE);
-          ch.pipeline().addLast(new FrameDecoder());
-          ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
-          ch.pipeline().addLast(HeartBeatRequestHandler.INSTANCE);
-          ch.pipeline().addLast(IMServerHandler.INSTANCE);
+          // ch.pipeline().addLast(new FrameDecoder());
+          // ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
+          // ch.pipeline().addLast(HeartBeatRequestHandler.INSTANCE);
+          // ch.pipeline().addLast(IMServerHandler.INSTANCE);
         }
       });
     // .attr() serverBootStrap.attr() 一般用不上
@@ -62,7 +65,7 @@ public class NettyServer {
   }
   
   private static ChannelFuture bind(ServerBootstrap serverBootstrap,
-    int port, boolean inc) {
+    int port, boolean inc) throws InterruptedException {
     return serverBootstrap.bind(port)
       .addListener(new GenericFutureListener<Future<? super Void>>() {
         @Override
@@ -81,6 +84,6 @@ public class NettyServer {
             }
           }
         }
-      });
+      }).sync();
   }
 }

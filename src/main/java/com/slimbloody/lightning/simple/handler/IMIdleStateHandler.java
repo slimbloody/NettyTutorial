@@ -1,5 +1,6 @@
 package com.slimbloody.lightning.simple.handler;
 
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -7,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+// @Sharable
 public class IMIdleStateHandler extends IdleStateHandler {
   private static final int READER_IDLE_TIME = 180;
   
